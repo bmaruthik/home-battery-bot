@@ -16,10 +16,25 @@
   .chartbox { background:#1c1c1e; border-radius:10px; padding:10px; margin-bottom:14px; }
   #updated { font-size:.75rem; opacity:.5; }
   .green{color:#4cd964}.red{color:#ff453a}.amber{color:#ffd60a}.blue{color:#64b5f6}
+  .toprow { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+  .toprow h1 { margin:0; }
+  #run-btn {
+    background:#238636; color:#fff; border:none; border-radius:8px;
+    padding:8px 14px; font-size:.8rem; font-weight:600; cursor:pointer;
+    text-decoration:none; display:inline-block;
+  }
+  #run-btn:hover { background:#2ea043; }
+  #run-hint { font-size:.68rem; opacity:.5; display:block; margin-top:3px; text-align:right; }
 </style>
 </head>
 <body>
-<h1>⚡ Home Energy <span id="updated"></span></h1>
+<div class="toprow">
+  <h1>⚡ Home Energy <span id="updated"></span></h1>
+  <div>
+    <a id="run-btn" href="https://github.com/bmaruthik/home-battery-bot/actions/workflows/bot.yml" target="_blank" rel="noopener">▶ Run now</a>
+    <span id="run-hint">opens Actions tab → click "Run workflow"</span>
+  </div>
+</div>
 <div class="cards">
   <div class="card"><div class="v amber" id="c-price">–</div><div class="l">c/kWh now</div></div>
   <div class="card"><div class="v green" id="c-soc">–</div><div class="l">Battery</div></div>
