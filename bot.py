@@ -137,6 +137,8 @@ def main():
 
     try:
         fox = fox_real(state)
+        r = http(FOX_BASE + path, fox_headers(path, variant), {"sn": sn, "variables": []})
+        print("ALL VARS:", [(v["variable"], v.get("value"), v.get("unit")) for v in r["result"][0]["datas"] if v.get("value") not in (0, 0.0, None)])
         soc = float(fox.get("SoC") or 0)
         fox_ok = soc > 0
     except Exception as e:
