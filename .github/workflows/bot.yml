@@ -1,7 +1,7 @@
 name: energy-bot
 on:
   schedule:
-    - cron: "*/30 * * * *"   # every 30 min (UTC; GitHub may delay a few minutes)
+    - cron: "*/10 * * * *"   # every 10 min (UTC; GitHub may delay a few minutes)
   workflow_dispatch: {}       # manual "Run workflow" button for testing
 
 permissions:
