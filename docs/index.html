@@ -25,6 +25,7 @@
   <div class="card"><div class="v green" id="c-soc">–</div><div class="l">Battery</div></div>
   <div class="card"><div class="v blue" id="c-load">–</div><div class="l">Load kW</div></div>
   <div class="card"><div class="v" id="c-solar">–</div><div class="l">Solar kW</div></div>
+  <div class="card"><div class="v" id="c-gen">–</div><div class="l">Gen kW</div></div>
   <div class="card"><div class="v red" id="c-grid">–</div><div class="l">Grid kW</div></div>
 </div>
 <div class="chartbox"><canvas id="main" height="220"></canvas></div>
@@ -40,7 +41,8 @@ async function go(){
   document.getElementById('c-soc').textContent = fmt(last.soc,0)+'%';
   document.getElementById('c-load').textContent = fmt(last.load);
   document.getElementById('c-solar').textContent = fmt(last.solar);
-  document.getElementById('c-grid').textContent = fmt(last.grid);
+  document.getElementById('c-gen').textContent = fmt(last.gen);
+  document.getElementById('c-grid').textContent = fmt(last.grid);  
 
   const labels = h.map(p=>p.t.slice(5));
   new Chart(document.getElementById('main'),{
