@@ -18,10 +18,10 @@ HISTORY_DAYS = 7
 TZ_OFFSET = 10              # AEST; Amber returns UTC times
 # ----------------------------------------
 
-AMBER_TOKEN = os.environ["AMBER_TOKEN"]
-FOX_KEY = os.environ["FOX_KEY"]
-TG_TOKEN = os.environ["TG_TOKEN"]
-TG_CHAT = os.environ["TG_CHAT"]
+AMBER_TOKEN = os.environ["AMBER_TOKEN"].strip()
+FOX_KEY = os.environ["FOX_KEY"].strip()
+TG_TOKEN = os.environ["TG_TOKEN"].strip()
+TG_CHAT = os.environ["TG_CHAT"].strip()
 
 STATE_FILE = "state.json"
 DATA_FILE = "docs/data.json"
