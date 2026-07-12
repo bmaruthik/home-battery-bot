@@ -201,8 +201,15 @@ def main():
     save_json(DATA_FILE, hist)
     save_json(STATE_FILE, state)
 
+    # Telegram sends are best-effort: a failed/rejected send must never stop
+    # the dashboard data above from being committed, and one bad alert must
+    # not block the rest from going out.
     for a in alerts:
-        telegram(a)
+        try:
+            telegram(a)
+        except Exception as e:
+            print(f"WARN telegram send failed: {e}")
+
     print(f"OK {point}")
 
 
