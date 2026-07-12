@@ -89,7 +89,8 @@ def fox_real(state):
     r = http(FOX_BASE + path, fox_headers(path, variant),
              {"sn": sn, "variables": ["SoC", "pvPower", "loadsPower",
                                       "gridConsumptionPower", "feedinPower",
-                                      "epsCurrentR", "epsVoltR"]})
+                                      "epsCurrentR", "epsVoltR",
+                                      "batChargePower", "batDischargePower"]})
     vals = {v["variable"]: v.get("value") for v in r["result"][0]["datas"]}
     return vals
 
@@ -192,6 +193,9 @@ def main():
         "grid": fox.get("gridConsumptionPower"),
         "feedin": fox.get("feedinPower"),
         "gen": round(float(fox.get("epsCurrentR") or 0) * float(fox.get("epsVoltR") or 0) / 1000, 3),
+        # signed battery power in kW: positive = discharging, negative = charging
+        "batt": round(float(fox.get("batDischargePower") or 0) - float(fox.get("batChargePower") or 0), 3)
+                if fox_ok else None,
     }
     hist["history"].append(point)
     hist["history"] = hist["history"][-(HISTORY_DAYS * 48):]

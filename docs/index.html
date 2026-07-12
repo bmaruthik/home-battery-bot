@@ -23,6 +23,7 @@
 <div class="cards">
   <div class="card"><div class="v amber" id="c-price">–</div><div class="l">c/kWh now</div></div>
   <div class="card"><div class="v green" id="c-soc">–</div><div class="l">Battery</div></div>
+  <div class="card"><div class="v" id="c-batt">–</div><div class="l">Batt kW</div></div>
   <div class="card"><div class="v blue" id="c-load">–</div><div class="l">Load kW</div></div>
   <div class="card"><div class="v" id="c-solar">–</div><div class="l">Solar kW</div></div>
   <div class="card"><div class="v" id="c-gen">–</div><div class="l">Backup kW</div></div>
@@ -31,18 +32,54 @@
 <div class="chartbox"><canvas id="main" height="220"></canvas></div>
 <div class="chartbox"><canvas id="fc" height="160"></canvas></div>
 <script>
+// Draws the numeric price on top of each bar in the forecast chart.
+const barLabelPlugin = {
+  id: 'barLabel',
+  afterDatasetsDraw(chart) {
+    const { ctx } = chart;
+    chart.data.datasets.forEach((dataset, i) => {
+      const meta = chart.getDatasetMeta(i);
+      if (meta.type !== 'bar') return;
+      ctx.save();
+      ctx.fillStyle = '#eee';
+      ctx.font = '10px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      meta.data.forEach((bar, idx) => {
+        const val = dataset.data[idx];
+        if (val == null) return;
+        ctx.fillText(Math.round(val), bar.x, bar.y - 3);
+      });
+      ctx.restore();
+    });
+  }
+};
+
 async function go(){
   const d = await (await fetch('data.json?t='+Date.now())).json();
   const h = d.history || [];
   const last = h[h.length-1] || {};
   document.getElementById('updated').textContent = 'updated ' + (d.updated||'');
   const fmt=(x,dp=1)=> (x==null?'–':Number(x).toFixed(dp));
+
   document.getElementById('c-price').textContent = fmt(last.price,0);
   document.getElementById('c-soc').textContent = fmt(last.soc,0)+'%';
   document.getElementById('c-load').textContent = fmt(last.load);
   document.getElementById('c-solar').textContent = fmt(last.solar);
   document.getElementById('c-gen').textContent = fmt(last.gen);
-  document.getElementById('c-grid').textContent = fmt(last.grid);  
+  document.getElementById('c-grid').textContent = fmt(last.grid);
+
+  // battery power: positive = discharging (green, ⬇ from battery),
+  // negative = charging (blue, ⬆ into battery)
+  const battEl = document.getElementById('c-batt');
+  if (last.batt == null) {
+    battEl.textContent = '–';
+    battEl.className = 'v';
+  } else {
+    const b = Number(last.batt);
+    battEl.textContent = Math.abs(b).toFixed(2) + (b >= 0 ? ' ⬇' : ' ⬆');
+    battEl.className = 'v ' + (b >= 0 ? 'green' : 'blue');
+  }
 
   const labels = h.map(p=>p.t.slice(5));
   new Chart(document.getElementById('main'),{
@@ -65,7 +102,9 @@ async function go(){
     data:{labels:(d.forecast||[]).map(f=>f.t),
       datasets:[{label:'Forecast price c/kWh',data:(d.forecast||[]).map(f=>f.price),
         backgroundColor:(d.forecast||[]).map(f=>f.price>=40?'#ff453a':f.price<=8?'#4cd964':'#ffd60a')}]},
-    options:{plugins:{legend:{display:false},title:{display:true,text:'Next 12h forecast'}}}
+    options:{layout:{padding:{top:16}},
+      plugins:{legend:{display:false},title:{display:true,text:'Next 12h forecast'}}},
+    plugins:[barLabelPlugin]
   });
 }
 go();
