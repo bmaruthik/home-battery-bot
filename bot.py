@@ -86,12 +86,19 @@ def fox_real(state):
         if variant is None:
             raise RuntimeError("Both signature variants rejected by FoxESS")
     path = "/op/v0/device/real/query"
+    #r = http(FOX_BASE + path, fox_headers(path, variant),
+    #         {"sn": sn, "variables": ["SoC", "pvPower", "loadsPower",
+    #                                  "gridConsumptionPower", "feedinPower",
+    #                                  "batDischargePower", "batChargePower",
+    #                                  "generationPower"]})
+    #print(f"FOX real/query: {str(r)[:300]}")
+    # --- TEMP discovery: request ALL variables ---
     r = http(FOX_BASE + path, fox_headers(path, variant),
-             {"sn": sn, "variables": ["SoC", "pvPower", "loadsPower",
-                                      "gridConsumptionPower", "feedinPower",
-                                      "batDischargePower", "batChargePower",
-                                      "generationPower"]})
-    print(f"FOX real/query: {str(r)[:300]}")
+             {"sn": sn, "variables": []})
+    print("ALL VARS:", [(v["variable"], v.get("value"), v.get("unit"))
+                        for v in r["result"][0]["datas"]
+                        if v.get("value") not in (0, 0.0, None)])
+    # --- end TEMP ---
     vals = {v["variable"]: v.get("value") for v in r["result"][0]["datas"]}
     return vals
 
@@ -137,8 +144,6 @@ def main():
 
     try:
         fox = fox_real(state)
-        r = http(FOX_BASE + path, fox_headers(path, variant), {"sn": sn, "variables": []})
-        print("ALL VARS:", [(v["variable"], v.get("value"), v.get("unit")) for v in r["result"][0]["datas"] if v.get("value") not in (0, 0.0, None)])
         soc = float(fox.get("SoC") or 0)
         fox_ok = soc > 0
     except Exception as e:
