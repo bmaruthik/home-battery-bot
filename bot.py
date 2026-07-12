@@ -69,6 +69,7 @@ def fox_real(state):
         path = "/op/v0/device/list"
         r = http(FOX_BASE + path, fox_headers(path),
                  {"currentPage": 1, "pageSize": 10})
+        print(f"FOX device/list response: {r}")
         sn = r["result"]["data"][0]["deviceSN"]
         state["fox_sn"] = sn
     path = "/op/v0/device/real/query"
@@ -76,6 +77,7 @@ def fox_real(state):
              {"sn": sn, "variables": ["SoC", "pvPower", "loadsPower",
                                       "gridConsumptionPower", "feedinPower",
                                       "batDischargePower", "batChargePower"]})
+    print(f"FOX real/query response: {str(r)[:500]}")
     vals = {v["variable"]: v.get("value") for v in r["result"][0]["datas"]}
     return vals
 
