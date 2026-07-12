@@ -57,27 +57,40 @@ def amber_prices():
 # ---------- FoxESS ----------
 FOX_BASE = "https://www.foxesscloud.com"
 
-def fox_headers(path):
+def fox_headers(path, variant=0):
     ts = str(int(time.time() * 1000))
-    sig = hashlib.md5(f"{path}\r\n{FOX_KEY}\r\n{ts}".encode()).hexdigest()
+    if variant == 0:
+        raw = f"{path}\\r\\n{FOX_KEY}\\r\\n{ts}"   # literal backslash r n
+    else:
+        raw = f"{path}\r\n{FOX_KEY}\r\n{ts}"        # real CRLF bytes
+    sig = hashlib.md5(raw.encode()).hexdigest()
     return {"token": FOX_KEY, "timestamp": ts, "signature": sig,
-            "lang": "en", "User-Agent": "energy-bot/1.0"}
+            "lang": "en", "User-Agent": "energy-bot/1.0",
+            "Content-Type": "application/json"}
 
 def fox_real(state):
     sn = state.get("fox_sn")
-    if not sn:
+    variant = state.get("fox_variant")
+    if variant is None:
         path = "/op/v0/device/list"
-        r = http(FOX_BASE + path, fox_headers(path),
-                 {"currentPage": 1, "pageSize": 10})
-        print(f"FOX device/list response: {r}")
-        sn = r["result"]["data"][0]["deviceSN"]
-        state["fox_sn"] = sn
+        for v in (0, 1):
+            r = http(FOX_BASE + path, fox_headers(path, v),
+                     {"currentPage": 1, "pageSize": 10})
+            print(f"FOX variant {v} device/list: {str(r)[:200]}")
+            if r.get("errno") == 0:
+                variant = v
+                state["fox_variant"] = v
+                sn = r["result"]["data"][0]["deviceSN"]
+                state["fox_sn"] = sn
+                break
+        if variant is None:
+            raise RuntimeError("Both signature variants rejected by FoxESS")
     path = "/op/v0/device/real/query"
-    r = http(FOX_BASE + path, fox_headers(path),
+    r = http(FOX_BASE + path, fox_headers(path, variant),
              {"sn": sn, "variables": ["SoC", "pvPower", "loadsPower",
                                       "gridConsumptionPower", "feedinPower",
                                       "batDischargePower", "batChargePower"]})
-    print(f"FOX real/query response: {str(r)[:500]}")
+    print(f"FOX real/query: {str(r)[:300]}")
     vals = {v["variable"]: v.get("value") for v in r["result"][0]["datas"]}
     return vals
 
