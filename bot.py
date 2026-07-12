@@ -86,19 +86,10 @@ def fox_real(state):
         if variant is None:
             raise RuntimeError("Both signature variants rejected by FoxESS")
     path = "/op/v0/device/real/query"
-    #r = http(FOX_BASE + path, fox_headers(path, variant),
-    #         {"sn": sn, "variables": ["SoC", "pvPower", "loadsPower",
-    #                                  "gridConsumptionPower", "feedinPower",
-    #                                  "batDischargePower", "batChargePower",
-    #                                  "generationPower"]})
-    #print(f"FOX real/query: {str(r)[:300]}")
-    # --- TEMP discovery: request ALL variables ---
     r = http(FOX_BASE + path, fox_headers(path, variant),
-             {"sn": sn, "variables": []})
-    print("ALL VARS:", [(v["variable"], v.get("value"), v.get("unit"))
-                        for v in r["result"][0]["datas"]
-                        if v.get("value") not in (0, 0.0, None)])
-    # --- end TEMP ---
+             {"sn": sn, "variables": ["SoC", "pvPower", "loadsPower",
+                                      "gridConsumptionPower", "feedinPower",
+                                      "epsCurrentR", "epsVoltR"]})
     vals = {v["variable"]: v.get("value") for v in r["result"][0]["datas"]}
     return vals
 
@@ -200,7 +191,7 @@ def main():
         "solar": fox.get("pvPower"),
         "grid": fox.get("gridConsumptionPower"),
         "feedin": fox.get("feedinPower"),
-        "gen": fox.get("generationPower"),
+        "gen": round(float(fox.get("epsCurrentR") or 0) * float(fox.get("epsVoltR") or 0) / 1000, 3),
     }
     hist["history"].append(point)
     hist["history"] = hist["history"][-(HISTORY_DAYS * 48):]
